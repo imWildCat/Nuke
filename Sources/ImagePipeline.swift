@@ -158,9 +158,9 @@ public /* final */ class ImagePipeline {
         let request = inheritOptions(request)
         let task = ImageTask(taskId: nextTaskId.increment(), request: request, isMainThreadConfined: isMainThreadConfined, isDataTask: false)
         task.pipeline = self
-        self.queue.async {
+     //   self.queue.async {
             self.startImageTask(task, callbackQueue: callbackQueue, progress: progressHandler, completion: completion)
-        }
+     //   }
         return task
     }
 
@@ -202,9 +202,9 @@ public /* final */ class ImagePipeline {
     // MARK: - Image Task Events
 
     func imageTaskCancelCalled(_ task: ImageTask) {
-        queue.async {
+        //queue.async {
             self.cancel(task)
-        }
+       // }
     }
 
     private func cancel(_ task: ImageTask) {

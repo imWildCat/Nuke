@@ -377,6 +377,7 @@ private final class ImageViewController {
             handle(result: .success(response), fromMemCache: true, options: options)
             if !image.isPreview { // Final image was downloaded
                 completion?(.success(response))
+                print("fail")
                 return nil // No task to perform
             }
         }

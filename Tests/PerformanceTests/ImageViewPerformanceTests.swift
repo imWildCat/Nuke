@@ -11,6 +11,7 @@ class ImageViewPerformanceTests: XCTestCase {
     override func setUp() {
         // Store something in memory cache to avoid going through an optimized empty Dictionary path
         ImagePipeline.shared.configuration.imageCache?[dummyCacheRequest] = ImageContainer(image: PlatformImage())
+        ImagePipeline.shared.configuration.dataLoadingQueue.isSuspended = true
     }
 
     override func tearDown() {
@@ -22,12 +23,39 @@ class ImageViewPerformanceTests: XCTestCase {
     func testImageViewMainThreadPerformance() {
         let view = _ImageView()
 
-        let urls = (0..<20_000).map { _ in return URL(string: "http://test.com/1)")! }
+        let urls = (0..<1000).map { _ in return URL(string: "http://test.com/\(arc4random())")! }
 
         measure {
             for url in urls {
-                loadImage(with: url, into: view)
+                let r = ImageRequest(url: url, processors: [ImageProcessors.Resize(width: CGFloat(arc4random()))])
+                loadImage(with: r, into: view)
             }
+        }
+    }
+
+    func testPrefetch() {
+
+        let urls = (0..<10).map {  URL(string: "http://test.com/\($0)")! }
+        let urls2 = (10..<20).map { URL(string: "http://test.com/\($0)")! }
+        var index = 0
+        let pr = ImagePreheater()
+        measure {
+            let startTime = CFAbsoluteTimeGetCurrent()
+            for _ in 0..<100 {
+                if index == 0 {
+                    pr.stopPreheating(with: urls)
+                    pr.startPreheating(with: urls2)
+                } else {
+                    pr.stopPreheating(with: urls2)
+                    pr.startPreheating(with: urls)
+                }
+
+                if index == 0 { index = 1} else { index = 0 }
+
+            }
+
+            let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
+             print("Time elapsed for  \(timeElapsed) s.")
         }
     }
 

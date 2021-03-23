@@ -356,7 +356,7 @@ final class TaskPool<Key: Hashable, Value, Error> {
         let task = make()
         map[key] = task
         task.onDisposed = { [weak self] in
-            self?.map[key] = nil
+       //     self?.map[key] = nil
         }
         return task.publisher
     }

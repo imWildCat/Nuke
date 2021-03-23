@@ -7,13 +7,35 @@ import Nuke
 
 // `Task.swift` is added directly to this target.
 class TaskPerformanceTests: XCTestCase {
-    func testSubscribe() {
+    func testSubscribe3(){
         measure {
-            for _ in 0..<100_000 {
-                let task = SimpleTask()
-                _ = task.publisher.subscribe { _ in
-                    // Do nothing
-                }
+            for _ in 0..<1000 {
+            let url = URL(string: "https://example.com/\(arc4random()).jpeg")!
+            let request = ImageRequest(url: url)
+            }
+        }
+    }
+
+    func testSubscribe2(){
+//        let pool: TaskPool<ImageRequest.LoadKeyForProcessedImage, ImageResponse, Error>
+//        measure {
+//            for _ in 0..<100 {
+//                let task =
+//
+//            }
+//        }
+    }
+
+    func testSubscribe() {
+
+        let loader = DataLoader()
+        measure {
+            for _ in 0..<100 {
+                let url = URL(string: "https://example.com/\(arc4random()).jpeg")!
+                let request = URLRequest(url: url)
+                loader.loadData(with: request, didReceiveData: { _, _ in }, completion: { _ in })
+//                let dataTask = URLSession.shared.dataTask(with: request)
+//                dataTask.resume()
             }
         }
     }

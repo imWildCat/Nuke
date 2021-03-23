@@ -22,7 +22,7 @@ class ImagePipelinePerfomanceTests: XCTestCase {
             $0.imageCache = nil
 
             $0.dataLoader = MockDataLoader()
-
+            $0.dataLoadingQueue.isSuspended = true
             $0.isDecompressionEnabled = false
 
             // This must be off for this test, because rate limiter is optimized for
@@ -33,23 +33,13 @@ class ImagePipelinePerfomanceTests: XCTestCase {
             $0.makeImageDecoder = { _ in MockDecoder() }
         }
 
-        let urls = (0...5000).map { URL(string: "http://test.com/\($0)")! }
+        let urls = (0...500).map { URL(string: "http://test.com/\($0)")! }
+        let requests = urls.map { ImageRequest(url: $0) }
         let callbackQueue = DispatchQueue(label: "testLoaderOverallPerformance")
         measure {
-            var finished: Int = 0
-            let semaphore = DispatchSemaphore(value: 0)
-            for url in urls {
-                var request = ImageRequest(url: url)
-                request.processors = [] // Remove processing time from equation
-
-                pipeline.loadImage(with: url, queue: callbackQueue) { _ in
-                    finished += 1
-                    if finished == urls.count {
-                        semaphore.signal()
-                    }
-                }
+            for request in requests {
+                pipeline.loadImage(with: request, completion: { [weak self] _ in print("ues" )})
             }
-            semaphore.wait()
         }
     }
 }

@@ -17,7 +17,7 @@ import Foundation
 /// All `Preheater` methods are thread-safe.
 public final class ImagePreheater {
     private let pipeline: ImagePipeline
-    private let queue = DispatchQueue(label: "com.github.kean.Nuke.Preheater", target: .global(qos: .userInitiated))
+//    private let queue = DispatchQueue(label: "com.github.kean.Nuke.Preheater", target: .global(qos: .userInitiated))
     private let preheatQueue = OperationQueue()
     private var tasks = [AnyHashable: Task]()
     private let destination: Destination
@@ -52,11 +52,11 @@ public final class ImagePreheater {
 
     deinit {
         let tasks = self.tasks.values // Make sure we don't retain self
-        queue.async {
+       // queue.async {
             for task in tasks {
                 task.cancel()
             }
-        }
+        //}/
 
         #if TRACK_ALLOCATIONS
         Allocations.decrement("ImagePreheater")
@@ -75,21 +75,23 @@ public final class ImagePreheater {
     /// for the given requests. At any time afterward, you can create tasks
     /// for individual images with equivalent requests.
     public func startPreheating(with requests: [ImageRequest]) {
-        queue.async {
+   //    queue.async {
             for request in requests {
                 self._startPreheating(with: request)
             }
-        }
+      //  }
     }
 
     private func _startPreheating(with request: ImageRequest) {
         let key = request.makeLoadKeyForFinalImage()
 
         guard tasks[key] == nil else {
+            print("fail")
             return // Already started prefetching
         }
 
         guard pipeline.configuration.imageCache?[request] == nil else {
+            print("fail")
             return // The image is already in memory cache
         }
 
@@ -100,9 +102,9 @@ public final class ImagePreheater {
             guard let self = self, let task = task else {
                 return finish()
             }
-            self.queue.async {
+       //     self.queue.async {
                 self.loadImage(with: request, task: task, finish: finish)
-            }
+     //       }
         })
         preheatQueue.addOperation(operation)
         tasks[key] = task
@@ -133,12 +135,12 @@ public final class ImagePreheater {
     }
 
     private func _remove(_ task: Task) {
-        queue.async {
+ //       queue.async {
             guard self.tasks[task.key] === task else {
                 return
             }
             self.tasks[task.key] = nil
-        }
+   //     }
     }
 
     /// Stops preheating images for the given urls.
@@ -151,11 +153,11 @@ public final class ImagePreheater {
     ///
     /// - parameter destination: `.memoryCache` by default.
     public func stopPreheating(with requests: [ImageRequest]) {
-        queue.async {
+    //    queue.async {
             for request in requests {
                 self._stopPreheating(with: request)
             }
-        }
+    //    }
     }
 
     private func _stopPreheating(with request: ImageRequest) {
@@ -167,10 +169,10 @@ public final class ImagePreheater {
 
     /// Stops all preheating tasks.
     public func stopPreheating() {
-        queue.async {
+      //  queue.async {
             self.tasks.values.forEach { $0.cancel() }
             self.tasks.removeAll()
-        }
+      //  }
     }
 
     private func _requests(for urls: [URL]) -> [ImageRequest] {
